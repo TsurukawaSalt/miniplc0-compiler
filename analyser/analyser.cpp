@@ -149,8 +149,8 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     // 记录上个token
     auto last = next;
     next = nextToken();
-    if (!next.has_value() || next.value().GetType() != TokenType::EQUAL_SIGN ||
-        next.value().GetType() != TokenType::SEMICOLON) {
+    if (!next.has_value() || (next.value().GetType() != TokenType::EQUAL_SIGN &&
+        next.value().GetType() != TokenType::SEMICOLON)) {
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNoSemicolon);
     }
@@ -406,7 +406,7 @@ std::optional<CompilationError> Analyser::analyseItem() {
 
     // <因子>
     err = analyseFactor();
-    if (!next.has_value()) {
+    if (next.has_value()) {
       return err;
     }
 
