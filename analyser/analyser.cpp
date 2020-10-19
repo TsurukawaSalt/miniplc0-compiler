@@ -260,6 +260,7 @@ std::optional<CompilationError> Analyser::analyseConstantExpression(
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrIncompleteExpression);
   }
+  out = 0;
   out = std::stoi(next.value().GetValueString());
   if (flag == false) {
     out *= -1;
@@ -458,9 +459,10 @@ std::optional<CompilationError> Analyser::analyseFactor() {
       // 标识符：要求已声明已初始化
       if (!isDeclared(next.value().GetValueString())) {
         return std::make_optional<CompilationError>(
-            _current_pos, ErrorCode::ErrInvalidIdentifier);
+            _current_pos, ErrorCode::ErrNotInitialized);
       }
-      if (!isInitializedVariable(next.value().GetValueString())) {
+      // fix bug : isInitializedVariable()返回的是*变量*是否初始化，如果要适用于常量&变量，应该用isUninitializedVariable()
+      if (isUninitializedVariable(next.value().GetValueString())) {
         return std::make_optional<CompilationError>(
             _current_pos, ErrorCode::ErrNotInitialized);
       }
