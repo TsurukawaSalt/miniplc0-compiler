@@ -323,6 +323,13 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrAssignToConstant);
   }
+  
+  //fix bug 移除未初始化队列
+  if (isUninitializedVariable(next.value().GetValueString())) {
+    auto val = _uninitialized_vars[next.value().GetValueString()];
+    _uninitialized_vars.erase(next.value().GetValueString());
+    _vars[next.value().GetValueString()] = val;
+  }
 
   // '='
   next = nextToken();
