@@ -461,6 +461,8 @@ std::optional<CompilationError> Analyser::analyseFactor() {
         return std::make_optional<CompilationError>(
             _current_pos, ErrorCode::ErrNotInitialized);
       }
+      // fix bug : load
+      _instructions.emplace_back(Operation::LOD, getIndex(next.value().GetValueString()));
       // fix bug : isInitializedVariable()返回的是*变量*是否初始化，如果要适用于常量&变量，应该用isUninitializedVariable()
       if (isUninitializedVariable(next.value().GetValueString())) {
         return std::make_optional<CompilationError>(
