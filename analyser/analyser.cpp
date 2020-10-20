@@ -420,7 +420,7 @@ std::optional<CompilationError> Analyser::analyseItem() {
 
     // <因子>
     err = analyseFactor();
-    if (next.has_value()) {
+    if (err.has_value()) {
       return err;
     }
 
