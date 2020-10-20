@@ -313,12 +313,6 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
                                                 ErrorCode::ErrNeedIdentifier);
   }
 
-  // todo 判断是否是标识符
-  if (next.value().GetType() != TokenType::IDENTIFIER) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedIdentifier);
-  }
-
   //标识符声明过吗？
   if (!isDeclared(next.value().GetValueString())) {
     return std::make_optional<CompilationError>(_current_pos,
@@ -492,7 +486,7 @@ std::optional<CompilationError> Analyser::analyseFactor() {
       if (!next.has_value() ||
           next.value().GetType() != TokenType::RIGHT_BRACKET) {
         return std::make_optional<CompilationError>(_current_pos,
-                                                    ErrorCode::ErrIncompleteExpression);
+                                                    ErrorCode::ErrNoSemicolon);
       }
       break;
     }
