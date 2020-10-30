@@ -116,16 +116,15 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     if (!next.has_value()) {
       return {};
     }
-
     // 'var'
-    // 如果是 var 那么应该推导<变量声明> 否则直接返回
     if (next.value().GetType() != TokenType::VAR) {
       unreadToken();
       return {};
     }
-
     // <标识符>
     next = nextToken();
+    auto ident = next.value();
+    // /*标识符的 token*/ Token(TokenType::NULL_TOKEN, nullptr, 0, 0, 0, 0);
     if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNeedIdentifier);
@@ -135,44 +134,47 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
       return std::make_optional<CompilationError>(
           _current_pos, ErrorCode::ErrDuplicateDeclaration);
     }
-
-    // 变量可能没有初始化，仍然需要一次预读
-    // 记录上个token
-    auto last = next;
     next = nextToken();
     if (!next.has_value() || (next.value().GetType() != TokenType::EQUAL_SIGN &&
                               next.value().GetType() != TokenType::SEMICOLON)) {
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNoSemicolon);
     }
-    // load int
-    _instructions.emplace_back(Operation::LIT, 0);
-
+    // 变量可能没有初始化，仍然需要一次预读
+    bool initialized = false;
     // ; 即，未初始化
     if (next.value().GetType() == TokenType::SEMICOLON) {
-      addUninitializedVariable(last.value());
+      initialized = false;
     }
     // '='
     else if (next.value().GetType() == TokenType::EQUAL_SIGN) {
-      addVariable(last.value());
+      initialized = true;
       // '<表达式>'
       auto err = analyseExpression();
       if (err.has_value()) {
         return err;
       }
-      // store
-      int32_t value = getIndex(last.value().GetValueString());
-      _instructions.emplace_back(Operation::STO, value);
-      // ';'
       next = nextToken();
       if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
         return std::make_optional<CompilationError>(_current_pos,
                                                     ErrorCode::ErrNoSemicolon);
       }
     }
+
+    // 把变量加入符号表
+    if (initialized) {
+    addVariable(ident);
+    // 已经初始化的变量的值的位置正好是之前表达式计算结果，所以不做处理
+    } else {
+    addUninitializedVariable(ident);
+    // 加载一个任意的初始值
+    _instructions.emplace_back(Operation::LIT, 0);
+    }
   }
 
   return {};
+
+  
 }
 
 // <语句序列> ::= {<语句>}
